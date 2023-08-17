@@ -21,6 +21,7 @@ Refer to the respective docs for more information
 - [Vercel](https://vercel.com/docs) - deployment platform
 - [github actions](https://docs.github.com/en/actions) - CI pipeline
 - [Mountebank](http://www.mbtest.org/) - used to fake 3rd party services to enable integrations and air gaped local dev
+- [Planetscale](https://planetscale.com/docs) - database as a service
 - [husky](https://typicode.github.io/husky/) - git hooks
 
 ## Getting Started
@@ -93,7 +94,10 @@ https://trunkbaseddevelopment.com/
 The following credentials are stored in github actions.
 To create/update tokens check out:
 * https://vercel.com/guides/how-do-i-use-a-vercel-api-access-token
+* https://planetscale.com/docs/concepts/service-tokens
 
+      PLANETSCALE_SERVICE_TOKEN
+      PLANETSCALE_SERVICE_TOKEN_ID
       VERCEL_TOKEN
       VERCEL_ORG_ID
       VERCEL_PROJECT_ID
@@ -128,3 +132,30 @@ the change to release
     ```
 7. Push changes to kick of deployment
 8. Verify bug has been fixed in demo instance
+
+
+### Database management
+#### Updating database schema in local
+
+If you add new tables or change the schema for the db run
+
+```bash
+ prisma generate
+```
+
+#### Resetting database data 
+
+The data will be cached in a docker volume. If you want to restart the database from scratch run
+```bash 
+docker rm -f seen-culture-app-dev-database-1 && docker volume prune -f && docker-compose up --build
+```
+
+# TODO we really should replace the mysql image with the vitess image  
+##### Edge case sql query failures in QA
+* In prod the database runs on planetscale which runs on top of mysql, in local we are using just mysql
+  there are some edge cases where certain sql commands will work locally but not in QA. To better reflect these
+  issues in local you can change the local dev setup to use
+  https://vitess.io/docs/16.0/get-started/vttestserver-docker-image/
+  Here is an example setup https://github.com/prisma/prisma/blob/main/docker/docker-compose.yml#L33-L53
+
+
