@@ -22,6 +22,8 @@ Refer to the respective docs for more information
 - [github actions](https://docs.github.com/en/actions) - CI pipeline
 - [Mountebank](http://www.mbtest.org/) - used to fake 3rd party services to enable integrations and air gaped local dev
 - [husky](https://typicode.github.io/husky/) - git hooks
+- [Prisma](https://prisma.io) - ORM
+
 
 ## Getting Started
 
@@ -52,8 +54,15 @@ You will need to get access to the following accounts
 ```bash
 cp .env.example .env && npm install
 ```
-   
-2. Start the application
+
+2. Start mysql database
+   ```docker-compose up --build```
+
+   Note: This will automatically seed QA data from the seed.ts file.
+   Make sure to include `--build` if you want to apply changes you have made to the seed files
+
+
+3. Start the application
 ```npm run dev```
 
 ### Running tests
@@ -93,7 +102,10 @@ https://trunkbaseddevelopment.com/
 The following credentials are stored in github actions.
 To create/update tokens check out:
 * https://vercel.com/guides/how-do-i-use-a-vercel-api-access-token
+* https://planetscale.com/docs/concepts/service-tokens
 
+      PLANETSCALE_SERVICE_TOKEN
+      PLANETSCALE_SERVICE_TOKEN_ID
       VERCEL_TOKEN
       VERCEL_ORG_ID
       VERCEL_PROJECT_ID
@@ -128,3 +140,36 @@ the change to release
     ```
 7. Push changes to kick of deployment
 8. Verify bug has been fixed in demo instance
+
+
+### Database management
+#### Updating database schema in local
+
+If you add new tables or change the schema for the db run
+
+```bash
+ prisma generate
+```
+
+#### Resetting database data
+
+The data will be cached in a docker volume. If you want to restart the database from scratch run
+```bash 
+docker rm -f seen-culture-app-dev-database-1 && docker volume prune -f && docker-compose up --build
+```
+
+#### Rebuild database from scratch
+
+```bash 
+docker rm -f <replace with database container name> && docker volume prune -y && docker-compose up --build 
+```
+
+# TODO we really should replace the mysql image with the vitess image  
+##### Edge case sql query failures in QA
+* In prod the database runs on planetscale which runs on top of mysql, in local we are using just mysql
+  there are some edge cases where certain sql commands will work locally but not in QA. To better reflect these
+  issues in local you can change the local dev setup to use
+  https://vitess.io/docs/16.0/get-started/vttestserver-docker-image/
+  Here is an example setup https://github.com/prisma/prisma/blob/main/docker/docker-compose.yml#L33-L53
+
+

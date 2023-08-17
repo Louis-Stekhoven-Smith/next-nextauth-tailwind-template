@@ -3,6 +3,7 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next"
 import superjson from "superjson"
 import { ZodError } from "zod"
 import { getServerAuthSession } from "~/server/external/auth"
+import { prisma } from "~/server/external/database";
 
 export const createTRPCContext = async ({
   req,
@@ -10,7 +11,7 @@ export const createTRPCContext = async ({
 }: CreateNextContextOptions) => {
   const session = await getServerAuthSession({ req, res })
 
-  return { session }
+  return { session, prisma, }
 }
 
 const t = initTRPC.context<typeof createTRPCContext>().create({

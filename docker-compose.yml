@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  dev-database:
+    image: mysql:8.0.32
+    environment:
+      MYSQL_ROOT_PASSWORD: mysqlRootPwd
+      MYSQL_DATABASE: <REPLACE WITH DATABASE NAME>
+      MYSQL_USER: default
+      MYSQL_PASSWORD: secret
+    ports:
+      - '3306:3306'
+    healthcheck:
+      test: [ "CMD", 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-proot' ]
+      interval: 10s
+      retries: 12
+
+  seed-dev-database:
+    build:
+      dockerfile: docker/dev-database/seedDatabase.Dockerfile
+      context: "."
+    command: sh -c "npm run db:setup"
+    volumes:
+      - "./prisma/:/db-setup/prisma/"
+    environment:
+      DATABASE_URL: "mysql://root:mysqlRootPwd@dev-database:3306/seen-culture-app"
+    depends_on:
+      dev-database:
+          condition: service_healthy

@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider      = "prisma-client-js"
+    binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+    relationMode = "prisma"
+}
+
+model Tenant {
+  id                      String           @id @default(uuid())
+  companyName             String
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime?        @updatedAt
+  subscriptionStatus      SubscriptionStatus
+  subscriptionStartDate   DateTime?
+  subscriptionEndDate     DateTime?
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELED
+}
+
+
+model Example {
+    id                         String   @default(cuid())
+    tenantId                   String
+    employeeIdCode             String
+    gender                     String?
+    level                      Int?
+    location                   String?
+    dateOfBirth                DateTime? @db.Date
+    createdAt                  DateTime @default(now())
+    exampleRelation            ExampleRelation[]
+
+    @@id([id, employeeIdCode])
+}
+
+model ExampleRelation {
+    attributeId    String
+    name           String
+    employeeIdCode String
+    people         Talent @relation(fields: [employeeIdCode, tenantId], references: [employeeIdCode, tenantId])
+
+    @@unique([attributeId, tenantId, employeeIdCode])
+    @@id([attributeId, employeeIdCode, tenantId])
+}
